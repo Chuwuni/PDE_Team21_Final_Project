@@ -33,13 +33,13 @@ docker-compose up -d
 
 ### Работа в UI
 
-http://localhost:8080/ - для Airflow UI (логин: airflow / пароль: airflow)
+http://localhost:8080/ - для Airflow UI (логин: admin / пароль: admin)
 
 Другие локальные порты при необходимости:
 
-pgAdmin: http://localhost:5050 (admin@admin.com / admin)
+pgAdmin: http://localhost:5050 (warehouse_user / warehouse_password)
 
-MinIO Console: http://localhost:9001 (minioadmin / minioadmin)
+MinIO Console: http://localhost:9001 (minio / minio123456)
 
 
 
