@@ -7,6 +7,10 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 POSTGRES_CONN_ID = "warehouse_db"
 
+SPARK_JARS = [
+    "postgresql-42.7.3.jar",
+]
+
 JDBC_CONFIG = {
     "url": "jdbc:postgresql://postgres:5432/warehouse_db",
     "user": "warehouse_user",
@@ -16,6 +20,14 @@ JDBC_CONFIG = {
 }
 
 
+def _spark_jars():
+    import os
+    import pyspark
+
+    jars_dir = os.path.join(os.path.dirname(pyspark.__file__), "jars")
+    return ",".join(os.path.join(jars_dir, jar_name) for jar_name in SPARK_JARS)
+
+
 def _get_spark_session():
     from pyspark.sql import SparkSession
 
@@ -23,7 +35,9 @@ def _get_spark_session():
         SparkSession.builder.appName("build-marts")
         .master("local[*]")
         .config("spark.driver.memory", "4g")
-        .config("spark.jars.packages", "org.postgresql:postgresql:42.7.3")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.jars", _spark_jars())
         .getOrCreate()
     )
 

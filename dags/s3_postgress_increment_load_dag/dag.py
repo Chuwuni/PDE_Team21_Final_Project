@@ -23,21 +23,35 @@ MINIO_CONF = {
     "secret_key": "minio123456",
 }
 
+SPARK_JARS = [
+    "hadoop-aws-3.4.2.jar",
+    "bundle-2.29.52.jar",
+    "postgresql-42.7.3.jar",
+]
+
+
+def _spark_jars():
+    import os
+    import pyspark
+
+    jars_dir = os.path.join(os.path.dirname(pyspark.__file__), "jars")
+    return ",".join(os.path.join(jars_dir, jar_name) for jar_name in SPARK_JARS)
+
 
 def _base_spark():
     from pyspark.sql import SparkSession
 
     return (
         SparkSession.builder.appName("incremental_load")
+        .master("local[*]")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.hadoop.fs.s3a.endpoint", MINIO_CONF["endpoint"])
         .config("spark.hadoop.fs.s3a.access.key", MINIO_CONF["access_key"])
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_CONF["secret_key"])
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        .config(
-            "spark.jars.packages",
-            "org.apache.hadoop:hadoop-aws:3.3.4,org.postgresql:postgresql:42.7.3",
-        )
+        .config("spark.jars", _spark_jars())
         .getOrCreate()
     )
 

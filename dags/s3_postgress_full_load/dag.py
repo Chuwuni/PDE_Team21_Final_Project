@@ -18,11 +18,19 @@ JDBC_CONFIG = {
     "batchsize": "5000",
 }
 
-SPARK_PACKAGES = [
-    "org.apache.hadoop:hadoop-aws:3.3.4",
-    "software.amazon.awssdk:bundle:2.24.6",
-    "org.postgresql:postgresql:42.7.3",
+SPARK_JARS = [
+    "hadoop-aws-3.4.2.jar",
+    "bundle-2.29.52.jar",
+    "postgresql-42.7.3.jar",
 ]
+
+
+def _spark_jars():
+    import os
+    import pyspark
+
+    jars_dir = os.path.join(os.path.dirname(pyspark.__file__), "jars")
+    return ",".join(os.path.join(jars_dir, jar_name) for jar_name in SPARK_JARS)
 
 
 def _get_spark_session():
@@ -32,12 +40,14 @@ def _get_spark_session():
         SparkSession.builder.appName("dwh-full-load")
         .master("local[*]")
         .config("spark.driver.memory", "4g")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
         .config("spark.hadoop.fs.s3a.access.key", "minio")
         .config("spark.hadoop.fs.s3a.secret.key", "minio123456")
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        .config("spark.jars.packages", ",".join(SPARK_PACKAGES))
+        .config("spark.jars", _spark_jars())
         .getOrCreate()
     )
 
